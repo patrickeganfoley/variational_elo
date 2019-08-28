@@ -1,5 +1,11 @@
+import torch
+import pyro
 import pandas as pd
 import logging
+
+from elo_model import EloModel
+
+pyro.enable_validation(True)
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -41,7 +47,14 @@ df_small = df_games[[
 ]]
 df_small = torch.tensor(df_games.values)
 
+elo_model = EloModel(n_games, n_teams)
 
+logger.info(f'Running model once.')
+elo_model.model(df_small)
 
-
-
+optim = Adam({"lr": 0.03})
+svi = SVI(
+    model=elo_model.model,
+    guide=ag.AutoDelta,
+    optim=optim
+)
