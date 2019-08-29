@@ -5,8 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 
-import pyro.contrib.autoguide as ag
+#  import pyro.contrib.autoguide as ag
 from elo_model import EloModel
+from auto_normal import AutoNormal
 
 pyro.enable_validation(True)
 torch.set_default_dtype(torch.double)
@@ -43,6 +44,7 @@ df_games = pd.merge(
 logger.info('Merged in Ids...')
 logger.info(df_games.head())
 logger.info(f'df_games has cols {df_games.columns}')
+df_team_ids.columns = ['team_id', 'team_name']
 
 df_games['win'] = 1.0 * (df_games['MOV'] >= 0.0)
 
@@ -50,7 +52,7 @@ df_games['win'] = 1.0 * (df_games['MOV'] >= 0.0)
 df_small = df_games[[
     'home_team_id', 'away_team_id', 'win'
 ]]
-df_small = torch.Tensor(df_games.values.astype('double'))
+df_small = torch.Tensor(df_small.values.astype('double'))
 
 elo_model = EloModel(
     n_games=n_games, n_teams=n_teams
@@ -67,7 +69,7 @@ optimizer = pyro.optim.Adam(adam_params)
 
 svi = pyro.infer.SVI(
     elo_model.model,
-    ag.AutoDelta(elo_model.model),
+    AutoNormal(elo_model.model),
     optimizer,
     loss=pyro.infer.JitTrace_ELBO()
 )
@@ -79,7 +81,7 @@ logger.info(pyro.get_param_store().get_all_param_names())
 train_elbo = []
 test_elbo = []
 
-num_epochs = 1500
+num_epochs = 2500
 test_gap = 50
 torch.manual_seed(0)
 
@@ -106,6 +108,7 @@ for epoch in range(num_epochs):
         bins = np.linspace(lb, rb, 500)
         plt.clf()
 
+        plt.subplot(211)
         plt.hist(
             pyro.param('auto_team_etas_loc').detach().numpy(),
             bins, alpha=0.5, label='teams'
@@ -113,6 +116,29 @@ for epoch in range(num_epochs):
         # plt.xlim([lb, rb])
         # plt.ylim([0, 1000])
 
+        plt.subplot(212)
+        plt.scatter(
+            pyro.param('auto_team_etas_loc').detach().numpy(),
+            pyro.param('auto_team_etas_scale').detach().numpy(),
+            s=0.25, alpha=0.5
+        )
+
         plt.pause(0.05)
         fig.canvas.draw()
         plt.pause(0.05)
+
+df_team_params = pd.DataFrame({
+    'team_id': range(0, n_teams),
+    'team_loc': pyro.param('auto_team_etas_loc').detach().numpy(),
+    'team_sd': pyro.param('auto_team_etas_scale').detach().numpy()
+})
+
+df_team_params = pd.merge(
+    df_team_params, df_team_ids,
+    on='team_id', how='left'
+)
+df_team_params.sort_values(
+    by='team_loc', ascending=False, inplace=True
+)
+logger.info(f'Top 20 teams are')
+logger.info(df_team_params.head(20))
