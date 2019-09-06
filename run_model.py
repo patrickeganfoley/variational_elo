@@ -113,6 +113,7 @@ for epoch in range(num_epochs):
             pyro.param('auto_team_etas_loc').detach().numpy(),
             bins, alpha=0.5, label='teams'
         )
+        plt.xlabel("Team Quality")
         # plt.xlim([lb, rb])
         # plt.ylim([0, 1000])
 
@@ -122,6 +123,8 @@ for epoch in range(num_epochs):
             pyro.param('auto_team_etas_scale').detach().numpy(),
             s=0.25, alpha=0.5
         )
+        plt.xlabel("Team Quality")
+        plt.ylabel("Team Quality Sigma")
 
         plt.pause(0.05)
         fig.canvas.draw()
@@ -130,7 +133,7 @@ for epoch in range(num_epochs):
 df_team_params = pd.DataFrame({
     'team_id': range(0, n_teams),
     'team_loc': pyro.param('auto_team_etas_loc').detach().numpy(),
-    'team_sd': pyro.param('auto_team_etas_scale').detach().numpy()
+    'team_scale': pyro.param('auto_team_etas_scale').detach().numpy()
 })
 
 df_team_params = pd.merge(
@@ -140,5 +143,19 @@ df_team_params = pd.merge(
 df_team_params.sort_values(
     by='team_loc', ascending=False, inplace=True
 )
+
 logger.info(f'Top 20 teams are')
 logger.info(df_team_params.head(20))
+
+df_team_params.sort_values(
+    by='team_scale', ascending=False, inplace=True
+)
+logger.info(f'Top 10 most uncertain teams are')
+logger.info(df_team_params.head(10))
+
+df_team_params.sort_values(
+    by='team_scale', ascending=False, inplace=True
+)
+logger.info(f'Top 10 least uncertain teams are')
+logger.info(df_team_params.tail(10))
+

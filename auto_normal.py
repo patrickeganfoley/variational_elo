@@ -42,11 +42,6 @@ class AutoNormal(ag.AutoGuide):
         plates = self._create_plates()
         result = {}
         for name, site in self.prototype_trace.iter_stochastic_nodes():
-            print(f'param {name} is {site}')
-            print(f"param {name} has fn  {site['fn']}")
-            print(f"param {name} has value  {site['value']}")
-            print(f"param {name} has value shape  {site['value'].shape}")
-            print(f"param {name} fn  has attrs {vars(site['fn'])}")
             with ExitStack() as stack:
                 for frame in site["cond_indep_stack"]:
                     if frame.vectorized:
@@ -71,14 +66,3 @@ class AutoNormal(ag.AutoGuide):
                     )
                 )
         return result
-
-    def median(self, *args, **kwargs):
-        """
-        Returns the posterior median value of each latent variable.
-
-        :return: A dict mapping sample site name to median tensor.
-        :rtype: dict
-
-        This is probably wrong.
-        """
-        return self(*args, **kwargs)
