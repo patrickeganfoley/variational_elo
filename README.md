@@ -1,10 +1,10 @@
-# variational_elo
+# Variational ELO for NCAAM Basketball 2002-2018
 
-Example Pyro Model - ELO for NCAAM Basketball
+This is just a toy model to learn how to use [Pyro-PPL](https://pyro.ai). 
 
 Uses games from 2002-2018 from Ryan Westerman's [dataset on data.world](https://data.world/rwesterman/ncaa-basketball-games-with-outcomes-2002-2018).
 
-Fits 
+Fits a classical elo model w/ mean field posteriors. 
 
 ```
 \logit(P(team a beats team b at home for team a)) = eta_a - eta_b + mu_home
@@ -14,13 +14,16 @@ mu_home ~N(0, 1)
 log(sigma^2_T) ~ N(0, 1)
 ```
 
-And learns independend gaussian varitional posteriors (mean field) for all parameters.
+And learns independent gaussian varitional posteriors (mean field) for all parameters.
 
 The model does not address time in any way - all games are treated as coming from one 16 year season.
 
 ## Output
 
 We learn a posterior mean and sigma for all team quality terms.  You can see in the plot below that there is a line of teams with low uncertainty (D1 teams) and then a cluster of teams with lower quality and much higher uncertainty (the D2 and D3 teams that play a few games a year against D1 opponents).
+
+
+<img src="model_output.png" width="500">
 
 Top 20 Teams (2002-2018)
 
