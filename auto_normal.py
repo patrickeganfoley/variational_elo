@@ -46,8 +46,8 @@ class AutoNormal(ag.AutoGuide):
                 for frame in site["cond_indep_stack"]:
                     if frame.vectorized:
                         stack.enter_context(plates[frame.name])
-                loc_name = "{}_{}_{}".format(self.prefix, name, 'loc')
-                scale_name = "{}_{}_{}".format(self.prefix, name, 'scale')
+                loc_name = "{}_{}_{}".format('auto', name, 'loc')
+                scale_name = "{}_{}_{}".format('auto', name, 'scale')
                 loc_value = pyro.param(
                     loc_name,
                     lambda: torch.zeros(site["fn"]._batch_shape + site["fn"]._event_shape),
